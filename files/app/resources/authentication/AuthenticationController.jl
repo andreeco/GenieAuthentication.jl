@@ -14,24 +14,22 @@ using GenieAuthentication.GenieSessionFileSession
 
 
 function show_login()
-  html(:authentication, :login, context = @__MODULE__)
+  html(:authentication, :login, context=@__MODULE__)
 end
 
 function login()
-  try
-    user = findone(User, username = params(:username), password = Users.hash_password(params(:password)))
+  user = findone(User, username=params(:username))
+  if !isnothing(user) && verify_password(user.password, params(:password))
     authenticate(user.id, GenieSession.session(params()))
-
-    redirect(:success)
-  catch ex
+    return redirect(:success)
+  else
     flash("Authentication failed! ")
-
-    redirect(:show_login)
+    return redirect(:show_login)
   end
 end
 
 function success()
-  html(:authentication, :success, context = @__MODULE__)
+  html(:authentication, :success, context=@__MODULE__)
 end
 
 function logout()
@@ -43,15 +41,15 @@ function logout()
 end
 
 function show_register()
-  html(:authentication, :register, context = @__MODULE__)
+  html(:authentication, :register, context=@__MODULE__)
 end
 
 function register()
   try
-    user = User(username  = params(:username),
-                password  = params(:password) |> Users.hash_password,
-                name      = params(:name),
-                email     = params(:email)) |> save!
+    user = User(username=params(:username),
+      password=params(:password) |> hash_password,
+      name=params(:name),
+      email=params(:email)) |> save!
 
     authenticate(user.id, GenieSession.session(params()))
 
