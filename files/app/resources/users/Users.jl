@@ -65,9 +65,8 @@ end
 """
     verify_password(stored::AbstractString, password::AbstractString)::Bool
 
-Verify that `password` matches the Argon2id hash given in `stored`
-(likely produced by `hash_password`), returning `true` on success
-and `false` otherwise.
+Verify that `password` matches the hash in `stored`. Supports both
+Argon2id and legacy SHA hashes. Return `true` if the password is correct.
 
 # Examples
 
@@ -87,11 +86,14 @@ false
 See also [`GenieAuthentication.Users.hash_password `](@ref).
 """
 function verify_password(stored::AbstractString, password::AbstractString)
-  status = Sodium.crypto_pwhash_str_verify(
-    Vector{UInt8}(stored), # ASCII → bytes
-    password, UInt64(sizeof(password))
-  )
-  return status == 0
+    if startswith(stored, "\$argon2id\$")
+        status = Sodium.crypto_pwhash_str_verify(
+            Vector{UInt8}(stored), password, UInt64(sizeof(password))
+        )
+        return status == 0
+    else
+        return stored == sha256(password)
+    end
 end
 
 end
