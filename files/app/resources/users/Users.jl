@@ -8,21 +8,21 @@ using Sodium
 export User, hash_password, verify_password
 
 Base.@kwdef mutable struct User <: AbstractModel
-    ### FIELDS
-    id::DbId = DbId()
-    username::String = ""
-    password::String = ""
-    name::String = ""
-    email::String = ""
+  ### FIELDS
+  id::DbId = DbId()
+  username::String = ""
+  password::String = ""
+  name::String = ""
+  email::String = ""
 end
 
 Validation.validator(u::Type{User}) = ModelValidator([
-    ValidationRule(:username, UsersValidator.not_empty),
-    ValidationRule(:username, UsersValidator.unique),
-    ValidationRule(:password, UsersValidator.not_empty),
-    ValidationRule(:email, UsersValidator.not_empty),
-    ValidationRule(:email, UsersValidator.unique),
-    ValidationRule(:name, UsersValidator.not_empty)
+  ValidationRule(:username, UsersValidator.not_empty),
+  ValidationRule(:username, UsersValidator.unique),
+  ValidationRule(:password, UsersValidator.not_empty),
+  ValidationRule(:email, UsersValidator.not_empty),
+  ValidationRule(:email, UsersValidator.unique),
+  ValidationRule(:name, UsersValidator.not_empty)
 ])
 
 const OPSLIMIT = UInt64(Sodium.crypto_pwhash_OPSLIMIT_MODERATE)
@@ -53,11 +53,11 @@ false
 See also [`GenieAuthentication.Users.verify_password`](@ref).
 """
 function hash_password(password::AbstractString)::String
-    buf = Vector{UInt8}(undef, STRBYTES)
-    status = Sodium.crypto_pwhash_str(
-        buf, password, UInt64(ncodeunits(password)), OPSLIMIT, MEMLIMIT)
-    @assert status == 0 "crypto_pwhash_str failed"
-    return unsafe_string(pointer(buf))
+  buf = Vector{UInt8}(undef, STRBYTES)
+  status = Sodium.crypto_pwhash_str(buf, password, UInt64(ncodeunits(password)), OPSLIMIT, MEMLIMIT)
+  @assert status == 0 "crypto_pwhash_str failed"
+  
+  unsafe_string(pointer(buf))
 end
 
 """
@@ -84,13 +84,12 @@ false
 See also [`GenieAuthentication.Users.hash_password `](@ref).
 """
 function verify_password(stored::AbstractString, password::AbstractString)
-    if startswith(stored, "\$argon2id\$")
-        status = Sodium.crypto_pwhash_str_verify(
-            stored, password, UInt64(ncodeunits(password))
-        )
-        return status == 0
-    else
-        return stored == sha256(password)
-    end
+  if startswith(stored, "\$argon2id\$")
+    status = Sodium.crypto_pwhash_str_verify(stored, password, UInt64(ncodeunits(password)))
+    return status == 0
+  end
+  
+  stored == sha256(password)
 end
+
 end
