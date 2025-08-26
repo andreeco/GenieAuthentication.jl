@@ -47,10 +47,12 @@ end
 
 function register()
   try
-    user = User(username=params(:username),
+    user = User(
+      username = params(:username),
       password = params(:password) |> hash_password,
       name = params(:name),
-      email = params(:email)) |> save!
+      email = params(:email)
+    ) |> save!
 
     authenticate(user.id, GenieSession.session(params()))
 
